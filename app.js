@@ -46,6 +46,53 @@ app.put('/books/:id',(req,res)=>{
     }
 });
 
+
+// app.post('/books/:bookId/:userId',(req,res)=>{
+//     const book = books.find(b => b.code === +(req.params.bookId));
+//     if(!book){
+//         res.status(409).json({error:"book ID didnt found!"}); 
+//     }
+//     else if(book.isBorrowed){
+
+//     }
+//     else{
+//     book.isBorrowed=true;
+//     const l={  "date": getDate(),
+//         "customerCode": req.params.userId}
+//     book.loans.push(l);
+//     books.push(book);
+//     res.status(201).json(books);
+//     }
+// });
+
+app.post('/books/:bookId',(req,res)=>{
+    const book = books.find(b => b.code === +(req.params.bookId));
+    if(!book){
+        res.status(409).json({error:"book ID didnt found!"}); 
+    }
+    else{
+    book.isBorrowed=false;
+    books.push(book);
+    res.status(201).json(books);
+    }
+});
+
+app.delete('/books/:bookId',(req,res)=>{
+    const book = books.find(b => b.code === +(req.params.bookId));
+    if(!book){
+        res.status(409).json({error:"book ID didnt found!"}); 
+    }
+    else{
+    
+    res.status(201).json(books);
+    }
+});
+
+
+
+
+
+
 app.listen(5000, () => {
     console.log('Server is running on http://localhost:5000');
 });
