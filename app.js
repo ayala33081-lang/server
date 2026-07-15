@@ -8,7 +8,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/books', (req, res) => {
-    res.status(201).json(books);
+    const {limit=10,page=1,search =""}=req.query;
+    const result = books.filter(b => b.name.includes(search));
+//להוסיף עדכון של עמוד?
+    res.status(201).json(result);
 });
 
 app.get('/books/:id', (req, res) => {
