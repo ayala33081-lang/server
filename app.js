@@ -83,7 +83,7 @@ app.delete('/books/:bookId',(req,res)=>{
         res.status(409).json({error:"book ID didnt found!"}); 
     }
     else{
-    
+    books.pop(book);
     res.status(201).json(books);
     }
 });
