@@ -1,5 +1,6 @@
 import express from 'express';
 import books from '../db.js'; 
+import users from '../users.js';
 
 const router = express.Router();
 
@@ -61,6 +62,10 @@ router.post('/:bookId/:userId', (req, res) => {
     if (!book) {
         return res.status(404).json({ error: "Book ID not found!" }); 
     }
+    const user=users.find(u=>u.code=== +userId);
+    if(!user){
+        return res.status(404).json({ error: "user code not found!" }); 
+    }
     if (book.isBorrowed) {
         return res.status(400).json({ error: "This book is already borrowed!" });
     }
@@ -74,6 +79,9 @@ router.post('/:bookId/:userId', (req, res) => {
         book.loans = [];
     }
     book.loans.push(newLoan);
+    if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
+    user.borrowedBookCodes.push(bookId);
+    
     
     res.status(200).json(book);
 });
