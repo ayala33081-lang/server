@@ -31,3 +31,19 @@ router.post('/sign-up', (req, res) => {
     res.status(201).json(newUser);
 });
 
+router.post('/sign-in', (req, res) => {
+    const { code,username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+    }
+    const user = users.find(u =>u.code===code&& u.username === username && u.password === password);
+
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    res.status(200).json({ message: 'Login successful', user });
+});
+
+export default router;
