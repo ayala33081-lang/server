@@ -1,4 +1,9 @@
-app.get('/books', (req, res) => {
+import express from 'express';
+import books from '../db.js'; 
+
+const router = express.Router();
+
+router.get('/', (req, res) => {
     const {limit=10,page=1,search =""}=req.query;
     const filteredBooks = books.filter(b => b.name.includes(search));
 
@@ -17,7 +22,7 @@ app.get('/books', (req, res) => {
 
 });
 
-app.get('/books/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   const book = books.find(b => b.code === +(req.params.id));
 
   if (book) {
@@ -27,7 +32,7 @@ app.get('/books/:id', (req, res) => {
   }
 });
 
-app.post('/books',(req,res)=>{
+router.post('/',(req,res)=>{
     if(req?.body){
         books.push(req.body);
         res.status(201).json(req.body);
@@ -37,7 +42,7 @@ app.post('/books',(req,res)=>{
     }
 });
 
-app.put('/books/:id',(req,res)=>{
+router.put('/:id',(req,res)=>{
     const book = books.find(b => b.code === +(req.params.id));
     if(!book){
         res.status(409).json({error:"id didnt found!"}); 
@@ -51,7 +56,7 @@ app.put('/books/:id',(req,res)=>{
 });
 
 
-app.post('/books/:bookId/:userId', (req, res) => {
+router.post('/:bookId/:userId', (req, res) => {
     const book = books.find(b => b.code === +(req.params.bookId));
     if (!book) {
         return res.status(404).json({ error: "Book ID not found!" }); 
@@ -73,7 +78,7 @@ app.post('/books/:bookId/:userId', (req, res) => {
     res.status(200).json(book);
 });
 
-app.post('/books/:bookId',(req,res)=>{
+router.post('/:bookId',(req,res)=>{
     const book = books.find(b => b.code === +(req.params.bookId));
     if(!book){
         res.status(409).json({error:"book ID didnt found!"}); 
@@ -84,7 +89,7 @@ app.post('/books/:bookId',(req,res)=>{
     }
 });
 
-app.delete('/books/:bookId',(req,res)=>{
+router.delete('/:bookId',(req,res)=>{
     const bookIndex = books.findIndex(b => b.code === +(req.params.bookId));
     if (bookIndex === -1) {
         res.status(404).json({ error: "Book ID not found!" }); 
