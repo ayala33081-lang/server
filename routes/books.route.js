@@ -57,12 +57,12 @@ router.put('/:id',(req,res)=>{
 });
 
 
-router.post('/:bookId/:userId', (req, res) => {
+router.post('/borrow/:bookId/:userId', (req, res) => {
     const book = books.find(b => b.code === +(req.params.bookId));
     if (!book) {
         return res.status(404).json({ error: "Book ID not found!" }); 
     }
-    const user=users.find(u=>u.code=== +userId);
+    const user=users.find(u=>u.code=== +req.params.userId);
     if(!user){
         return res.status(404).json({ error: "user code not found!" }); 
     }
@@ -80,20 +80,22 @@ router.post('/:bookId/:userId', (req, res) => {
     }
     book.loans.push(newLoan);
     if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
-    user.borrowedBookCodes.push(bookId);
-    
+    user.borrowedBookCodes.push(+req.params.bookId);
     
     res.status(200).json(book);
 });
 
-router.post('/:bookId',(req,res)=>{
+router.post('/return/:bookId/:userId',(req,res)=>{
     const book = books.find(b => b.code === +(req.params.bookId));
     if(!book){
         res.status(409).json({error:"book ID didnt found!"}); 
     }
     else{
     book.isBorrowed=false;
-    res.status(201).json(books);
+
+    const user=users.find(u=>u.code=== +req.params.userId);
+    user.borrowedBookCodes = user.borrowedBookCodes.filter(id => id !== +req.params.bookId);    
+    res.status(200).json(books);
     }
 });
 
