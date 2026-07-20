@@ -1,5 +1,6 @@
 import express from 'express';
 import indexRouter from './routes/index.route.js';
+import {currentDate,printDate} from './middlewares/date.middleware.js';
 
 import cors from 'cors';
 import morgan from 'morgan';
@@ -21,6 +22,8 @@ const limiter = rateLimit({
     max: 100 // הגבלה ל-100 בקשות לכל IP
 });
 app.use(limiter);
+app.use(currentDate);
+app.use(printDate);
 
 app.use(express.json());
 
