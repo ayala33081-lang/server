@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בדיקת שרת ספרייה</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        button { padding: 10px; margin: 5px; cursor: pointer; }
+        #resultArea { 
+            margin-top: 20px; 
+            padding: 15px; 
+            background-color: #f4f4f4; 
+            border: 1px solid #ccc; 
+            white-space: pre-wrap;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ממשק בדיקת שרת</h1>
+    
+    <button id="getBooksBtn">הצג את כל הספרים</button>
+    <button id="signUpBtn">בדוק הרשמת משתמש (Sign Up)</button>
+
+    <h3>תגובת השרת:</h3>
+    <div id="resultArea">כאן יופיע המידע מהשרת...</div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
