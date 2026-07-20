@@ -1,112 +1,23 @@
 import express from 'express';
-import books from '../db.js'; 
-import users from '../users.js';
+import {
+    getAllBooks,
+    getBookById,
+    addBook,
+    updateBook,
+    makeBorrow,
+    makeReturn,
+    deleteBook
+} from '../controllers/books.controllers.js';
+import { validateBook } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    const {limit=10,page=1,search =""}=req.query;
-    const filteredBooks = books.filter(b => b.name.includes(search));
+router.get('/', getAllBooks);
+router.get('/:id', getBookById);
+router.post('/', validateBook, addBook);
+router.put('/:id', validateBook, updateBook);
+router.post('/borrow/:bookId/:userId', makeBorrow);
+router.post('/return/:bookId/:userId', makeReturn);
+router.delete('/:bookId', deleteBook);
 
-    const startIndex = (+page - 1) * (+limit);
-    const endIndex = startIndex + (+limit);
-    
-    const result = filteredBooks.slice(startIndex, endIndex);
-    
-    res.status(200).json({
-        page: +(page),
-        limit: +(limit),
-        totalItems: filteredBooks.length,
-        data: result
-
-    });
-
-});
-
-router.get('/:id', (req, res) => {
-  const book = books.find(b => b.code === +(req.params.id));
-
-  if (book) {
-    res.json(book);
-  } else {
-    res.status(404).json({ message: 'הספר לא נמצא' });
-  }
-});
-
-router.post('/',(req,res)=>{
-    if(req?.body){
-        books.push(req.body);
-        res.status(201).json(req.body);
-    }
-    else{
-        res.status(409).json({ error: 'books is required' });
-    }
-});
-
-router.put('/:id',(req,res)=>{
-    const book = books.find(b => b.code === +(req.params.id));
-    if(!book){
-        res.status(409).json({error:"id didnt found!"}); 
-    }
-    else{
-    book.category=req.body.category;
-    book.name=req.body.name;
-    book.price=req.body.price;
-    res.status(201).json(books);
-    }
-});
-
-
-router.post('/borrow/:bookId/:userId', (req, res) => {
-    const book = books.find(b => b.code === +(req.params.bookId));
-    if (!book) {
-        return res.status(404).json({ error: "Book ID not found!" }); 
-    }
-    const user=users.find(u=>u.code=== +req.params.userId);
-    if(!user){
-        return res.status(404).json({ error: "user code not found!" }); 
-    }
-    if (book.isBorrowed) {
-        return res.status(400).json({ error: "This book is already borrowed!" });
-    }
-    book.isBorrowed = true;
-    const currentDate = new Date().toISOString().split('T')[0];
-    const newLoan = {
-        date: currentDate,
-        customerCode: +(req.params.userId)
-    };
-    if (!book.loans) {
-        book.loans = [];
-    }
-    book.loans.push(newLoan);
-    if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
-    user.borrowedBookCodes.push(+req.params.bookId);
-    
-    res.status(200).json(book);
-});
-
-router.post('/return/:bookId/:userId',(req,res)=>{
-    const book = books.find(b => b.code === +(req.params.bookId));
-    if(!book){
-        res.status(409).json({error:"book ID didnt found!"}); 
-    }
-    else{
-    book.isBorrowed=false;
-
-    const user=users.find(u=>u.code=== +req.params.userId);
-    user.borrowedBookCodes = user.borrowedBookCodes.filter(id => id !== +req.params.bookId);    
-    res.status(200).json(books);
-    }
-});
-
-router.delete('/:bookId',(req,res)=>{
-    const bookIndex = books.findIndex(b => b.code === +(req.params.bookId));
-    if (bookIndex === -1) {
-        res.status(404).json({ error: "Book ID not found!" }); 
-    }
-    else {
-        const deletedBook = books.splice(bookIndex, 1); 
-        res.status(200).json({ message: "Book deleted successfully", deletedBook });
-    }
-});
 export default router;
