@@ -1,8 +1,6 @@
 import express from 'express';
 import indexRouter from './routes/index.route.js';
 
-import express from 'express';
-
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -27,7 +25,6 @@ app.use(limiter);
 app.use(express.json());
 
 
-const app = express();
 app.use(express.json());
 app.use('/api',indexRouter);
 
