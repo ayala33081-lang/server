@@ -27,14 +27,14 @@ export const getBookById = (req, res, next) => {
         const book = books.find(b => b.code === +(req.params.id));
 
         if (book) {
-            res.json(book);
+            return res.json(book);
         } else {
             const error = new Error('Book ID not found!');
             error.status = 404;
             throw error;
         }
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -42,14 +42,14 @@ export const addBook = (req, res, next) => {
     try {
         if (req?.body && Object.keys(req.body).length > 0) {
             books.push(req.body);
-            res.status(201).json(req.body);
+            return res.status(201).json(req.body);
         } else {
             const error = new Error('Book data is required');
             error.status = 400;
             throw error;
         }
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -67,9 +67,9 @@ export const updateBook = (req, res, next) => {
         book.name = req.body.name;
         book.price = req.body.price;
 
-        res.status(200).json(books);
+        return res.status(200).json(books);
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -108,9 +108,9 @@ export const makeBorrow = (req, res, next) => {
         if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
         user.borrowedBookCodes.push(+req.params.bookId);
         
-        res.status(200).json(book);
+        return res.status(200).json(book);
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -133,9 +133,9 @@ export const makeReturn = (req, res, next) => {
         book.isBorrowed = false;
         user.borrowedBookCodes = user.borrowedBookCodes.filter(id => id !== +req.params.bookId);    
         
-        res.status(200).json(books);
+        return res.status(200).json(books);
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -149,8 +149,8 @@ export const deleteBook = (req, res, next) => {
         }
         
         const deletedBook = books.splice(bookIndex, 1); 
-        res.status(200).json({ message: "Book deleted successfully", deletedBook });
+        return res.status(200).json({ message: "Book deleted successfully", deletedBook });
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };

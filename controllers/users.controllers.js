@@ -2,9 +2,9 @@ import users from '../users.js';
 
 export const getAllUsers = (req, res, next) => {
     try {
-        res.status(200).json(users);
+        return res.status(200).json(users);
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
 
@@ -34,9 +34,9 @@ export const signUp = (req, res, next) => {
         };
 
         users.push(newUser);
-        res.status(201).json(newUser);
+        return res.status(201).json(newUser);
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }    
 };
 
@@ -58,8 +58,8 @@ export const signIn = (req, res, next) => {
             throw error;    
         }
 
-        res.status(200).json({ message: 'Login successful', user });
+        return res.status(200).json({ message: 'Login successful', user });
     } catch (err) { 
-        next(err); 
+        return next(err); 
     }
 };
