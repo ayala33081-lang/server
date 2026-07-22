@@ -28,9 +28,10 @@ export const signUp = async (req, res, next) => {
 
 export const signIn = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email } = req.body;
+        const isMatch = await user.comparePassword(password);
 
-        if ( !email || !password ) {
+        if ( !email || !isMatch) {
             const error = new Error('Email and password are required');
             error.status = 400;
             throw error;

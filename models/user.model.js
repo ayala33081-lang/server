@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import bcrypt from 'bcrypt';
 
 const phoneRegex = /^0(5[0-9]|[23489])-?[0-9]{7}$/;
 
@@ -33,5 +34,22 @@ const userSchema = new Schema({
         bookCode: String
     }]
 });
+
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
+
+userSchema.methods.comparePassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.methods.toJSON = function () {
+    const userObject = this.toObject();
+    delete userObject.password;
+    return userObject;
+};
 
 export const User = model('user', userSchema);
