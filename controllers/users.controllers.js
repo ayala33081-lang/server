@@ -1,60 +1,46 @@
-import users from '../users.js';
+import {User} from '../models/user.model.js';
 
-export const getAllUsers = (req, res, next) => {
+export const getAllUsers = async (req, res, next) => {
     try {
+        const users= await User.find();
         return res.status(200).json(users);
     } catch (err) { 
         return next(err); 
     }
 };
 
-export const signUp = (req, res, next) => {
+export const signUp = async (req, res, next) => {
     try {
-        const { code, username, email, password } = req.body;
+        const { name, email, phone, password } = req.body;
        
-        if (!code || !username || !email || !password) {
-            const error = new Error('Username, email, code and password are required');
+        if (!name || !email || !phone || !password) {
+            const error = new Error('Name, email, phone and password are required');
             error.status = 400;
             throw error;
         }
-
-        const userExists = users.some(u => u.code === code || u.email === email || u.username === username);
-        if (userExists) {
-            const error = new Error('User already exists');
-            error.status = 409;
-            throw error;    
-        }
         
-        const newUser = {
-            code,
-            username,
-            email,
-            password,
-            borrowedBookCodes: []
-        };
-
-        users.push(newUser);
+        const newUser = await User.create({ name, email, phone, password });
         return res.status(201).json(newUser);
     } catch (err) { 
         return next(err); 
     }    
 };
 
-export const signIn = (req, res, next) => {
+export const signIn = async (req, res, next) => {
     try {
-        const { code, username, password } = req.body;
+        const { email, password } = req.body;
 
-        if (!username || !password || !code) {
-            const error = new Error('Username, code and password are required');
+        if ( !email || !password ) {
+            const error = new Error('Email and password are required');
             error.status = 400;
             throw error;
         }
         
-        const user = users.find(u => u.code === code && u.username === username && u.password === password);
+        const user = await User.findOne({ email, password });
 
         if (!user) {
-            const error = new Error('Invalid username, code or password');
-            error.status = 401; // 401 מתאים לפרטי הזדהות שגויים
+            const error = new Error('Invalid email or password');
+            error.status = 401;
             throw error;    
         }
 
