@@ -52,4 +52,18 @@ userSchema.methods.toJSON = function () {
     return userObject;
 };
 
+userSchema.methods.toJSON = function () {
+    const userObject = this.toObject();
+    
+    // 1. הוספת השדה id ושיוך הערך מ-_id
+    userObject.id = userObject._id;
+    
+    // 2. מחיקת השדות שלא רוצים להחזיר בתגובה
+    delete userObject._id;
+    delete userObject.__v; // מומלץ למחוק גם את שדה הגרסה של Mongoose
+    delete userObject.password;
+    
+    return userObject;
+};
+
 export const User = model('user', userSchema);
