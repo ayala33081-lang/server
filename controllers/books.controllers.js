@@ -1,20 +1,20 @@
-import books from '../db.js'; 
+import { isValidObjectId } from "mongoose";
+import {Book} from '../models/book.model.js'; 
 import users from '../users.js';
 
-export const getAllBooks = (req, res, next) => {
+export const getAllBooks = async (req, res, next) => {
     try {
-        const { limit = 10, page = 1, search = "" } = req.query;
-        const filteredBooks = books.filter(b => b.name.includes(search));
-
-        const startIndex = (+page - 1) * (+limit);
-        const endIndex = startIndex + (+limit);
+        const { limit = 10, page = 1, search = '' } = req.query;
+        const filter = search ? { name: new RegExp(search, 'i') } : {};
+        const result = await Book.find( filter)
+            .skip((page - 1) * limit)
+            .limit(limit);
         
-        const result = filteredBooks.slice(startIndex, endIndex);
         
         res.status(200).json({
             page: +(page),
             limit: +(limit),
-            totalItems: filteredBooks.length,
+            totalItems: await Book.countDocuments(filter),
             data: result
         });
     } catch (err) { 
@@ -22,9 +22,9 @@ export const getAllBooks = (req, res, next) => {
     }
 };
 
-export const getBookById = (req, res, next) => {
+export const getBookById = async (req, res, next) => {
     try {
-        const book = books.find(b => b.code === +(req.params.id));
+        const book = await Book.findById(req.params.id);
 
         if (book) {
             return res.json(book);
@@ -38,11 +38,11 @@ export const getBookById = (req, res, next) => {
     }
 };
 
-export const addBook = (req, res, next) => {
+export const addBook = async (req, res, next) => {
     try {
         if (req?.body && Object.keys(req.body).length > 0) {
-            books.push(req.body);
-            return res.status(201).json(req.body);
+            const newBook = await Book.create(req.body);
+            return res.status(201).json(newBook);
         } else {
             const error = new Error('Book data is required');
             error.status = 400;
@@ -52,30 +52,26 @@ export const addBook = (req, res, next) => {
         return next(err); 
     }
 };
-
-export const updateBook = (req, res, next) => {
+export const updateBook = async (req, res, next) => {
     try {
-        const book = books.find(b => b.code === +(req.params.id));
+
+        const book = await Book.findByIdAndUpdate(req.params.id, req.body , { new: true });
         
         if (!book) {
             const error = new Error('Book ID not found!');
             error.status = 404;
             throw error;
         }
-        
-        book.category = req.body.category;
-        book.name = req.body.name;
-        book.price = req.body.price;
-
-        return res.status(200).json(books);
+       
+        return res.status(200).json(book);
     } catch (err) { 
         return next(err); 
     }
 };
 
-export const makeBorrow = (req, res, next) => {
+export const makeBorrow = async (req, res, next) => {
     try {
-        const book = books.find(b => b.code === +(req.params.bookId));
+        const book = await Book.findById(req.params.bookId);
         if (!book) {
             const error = new Error('Book ID not found!');
             error.status = 404;
@@ -95,7 +91,7 @@ export const makeBorrow = (req, res, next) => {
             throw error;    
         }
         
-        book.isBorrowed = true;
+        book.isBorrowed = true;        
         const currentDate = new Date().toISOString().split('T')[0];
         const newLoan = {
             date: currentDate,
@@ -108,15 +104,17 @@ export const makeBorrow = (req, res, next) => {
         if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
         user.borrowedBookCodes.push(+req.params.bookId);
         
+        await book.save();
         return res.status(200).json(book);
+
     } catch (err) { 
         return next(err); 
     }
 };
 
-export const makeReturn = (req, res, next) => {
+export const makeReturn = async (req, res, next) => {
     try {
-        const book = books.find(b => b.code === +(req.params.bookId));
+        const book = await Book.findById(req.params.bookId);
         if (!book) {
             const error = new Error('Book ID not found!');
             error.status = 404;
@@ -133,22 +131,21 @@ export const makeReturn = (req, res, next) => {
         book.isBorrowed = false;
         user.borrowedBookCodes = user.borrowedBookCodes.filter(id => id !== +req.params.bookId);    
         
-        return res.status(200).json(books);
+        await book.save();
+        return res.status(200).json(book);
     } catch (err) { 
         return next(err); 
     }
 };
 
-export const deleteBook = (req, res, next) => {
+export const deleteBook = async (req, res, next) => {
     try {
-        const bookIndex = books.findIndex(b => b.code === +(req.params.bookId));
-        if (bookIndex === -1) {
+        const deletedBook = await Book.findByIdAndDelete(req.params.id);
+        if (!deletedBook) {
             const error = new Error('Book ID not found!');
             error.status = 404;
             throw error;    
         }
-        
-        const deletedBook = books.splice(bookIndex, 1); 
         return res.status(200).json({ message: "Book deleted successfully", deletedBook });
     } catch (err) { 
         return next(err); 
