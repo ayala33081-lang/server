@@ -1,7 +1,6 @@
 import { isValidObjectId } from "mongoose";
 import {Book} from '../models/book.model.js'; 
-import users from '../users.js';
-
+import {User} from '../models/user.model.js'
 export const getAllBooks = async (req, res, next) => {
     try {
         const { limit = 10, page = 1, search = '' } = req.query;
@@ -55,7 +54,7 @@ export const addBook = async (req, res, next) => {
 export const updateBook = async (req, res, next) => {
     try {
 
-        const book = await Book.findByIdAndUpdate(req.params.id, req.body , { new: true });
+        const book = await Book.findByIdAndUpdate(req.params.id, req.body , { new: true,runValidators: true });
         
         if (!book) {
             const error = new Error('Book ID not found!');
@@ -78,7 +77,7 @@ export const makeBorrow = async (req, res, next) => {
             throw error;
         }
         
-        const user = users.find(u => u.code === +req.params.userId);
+        const user = await User.findById(req.params.userId);
         if (!user) {
             const error = new Error('User code not found!');
             error.status = 404;
@@ -95,15 +94,16 @@ export const makeBorrow = async (req, res, next) => {
         const currentDate = new Date().toISOString().split('T')[0];
         const newLoan = {
             date: currentDate,
-            customerCode: +(req.params.userId)
+            customerCode: (req.params.userId)
         };
         
         if (!book.loans) book.loans = [];
         book.loans.push(newLoan);
         
-        if (!user.borrowedBookCodes) user.borrowedBookCodes = [];
-        user.borrowedBookCodes.push(+req.params.bookId);
+        if (!user.loans) user.loans = [];
+        user.loans.push({ bookCode: book._id, bookName: book.name });
         
+        await user.save();
         await book.save();
         return res.status(200).json(book);
 
@@ -121,7 +121,7 @@ export const makeReturn = async (req, res, next) => {
             throw error;
         }
         
-        const user = users.find(u => u.code === +req.params.userId);
+        const user = await User.findById(req.params.userId);
         if (!user) {
             const error = new Error('User code not found!');
             error.status = 404;
@@ -129,8 +129,10 @@ export const makeReturn = async (req, res, next) => {
         }
 
         book.isBorrowed = false;
-        user.borrowedBookCodes = user.borrowedBookCodes.filter(id => id !== +req.params.bookId);    
-        
+    if (user.loans) {
+    user.loans = user.loans.filter(loan => loan.bookCode.toString() !== req.params.bookId);
+    }        
+        await user.save();
         await book.save();
         return res.status(200).json(book);
     } catch (err) { 
@@ -149,5 +151,16 @@ export const deleteBook = async (req, res, next) => {
         return res.status(200).json({ message: "Book deleted successfully", deletedBook });
     } catch (err) { 
         return next(err); 
+    }
+};
+
+export const getBooksByCategory = async (req, res, next) => {
+    try {
+        const { category } = req.params;
+        const books = await Book.find({ category });
+        
+        return res.status(200).json(books);
+    } catch (err) {
+        return next(err);
     }
 };
